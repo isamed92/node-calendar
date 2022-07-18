@@ -1,12 +1,11 @@
 const { response } = require('express');
 const Event = require('../models/Event');
 
-const getEvents = async(req, res = response) => {
-  const events = await Event.find()
-                            .populate('user', 'name')
+const getEvents = async (req, res = response) => {
+  const events = await Event.find().populate('user', 'name');
   res.status(200).json({
     ok: true,
-    events
+    events,
   });
 };
 
@@ -14,13 +13,13 @@ const createEvent = async (req, res = response) => {
   const event = new Event(req.body);
 
   try {
-    event.user = req.uid
+    event.user = req.uid;
 
     const savedEvent = await event.save();
 
     res.status(200).json({
       ok: true,
-      event: savedEvent
+      event: savedEvent,
     });
   } catch (error) {
     console.log(error);
@@ -30,47 +29,41 @@ const createEvent = async (req, res = response) => {
       msg: 'hable con el administrador',
     });
   }
-  
 };
 
-const updateEvent = async(req, res = response) => {
-
-  const eventId = req.params.id
-  const uid = req.uid
-
+const updateEvent = async (req, res = response) => {
+  const eventId = req.params.id;
+  const uid = req.uid;
 
   try {
-    const event = await Event.findById(eventId)
-    console.log(event.user.toString())
-    console.log(uid)
+    const event = await Event.findById(eventId);
 
-
-    if(!event) {
+    if (!event) {
       res.status(404).json({
         ok: false,
-        msg: 'El evento no existe con ese Id'
-      })
+        msg: 'El evento no existe con ese Id',
+      });
     }
 
-    if(event.user.toString() !== uid){
+    if (event.user.toString() !== uid) {
       return res.status(401).json({
-        ok:false,
-        msg: 'No tiene permiso para editar este evento'
-      })
+        ok: false,
+        msg: 'No tiene permiso para editar este evento',
+      });
     }
 
     const eventUpdate = {
       ...req.body,
-      user: uid
-    }
+      user: uid,
+    };
 
-    const eventUpdated = await Event.findByIdAndUpdate(eventId, eventUpdate, {new: true})
+    const eventUpdated = await Event.findByIdAndUpdate(eventId, eventUpdate, {
+      new: true,
+    });
     res.status(200).json({
       ok: true,
-      event: eventUpdate
+      event: eventUpdated,
     });
-
-
   } catch (error) {
     console.log(error);
 
@@ -79,16 +72,41 @@ const updateEvent = async(req, res = response) => {
       msg: 'hable con el administrador',
     });
   }
-
-
- 
 };
 
-const deleteEvent = (req, res = response) => {
-  res.status(200).json({
-    ok: true,
-    msg: 'delete evento',
-  });
+const deleteEvent = async (req, res = response) => {
+  const eventId = req.params.id;
+  const uid = req.uid;
+
+  try {
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({
+        ok: false,
+        msg: 'El evento no existe con ese Id',
+      });
+    }
+
+    if (event.user.toString() !== uid) {
+      return res.status(401).json({
+        ok: false,
+        msg: 'No tiene permiso para eliminar este evento',
+      });
+    }
+
+    await Event.findByIdAndDelete(eventId);
+    res.status(200).json({
+      ok: true,
+      msg: 'Evento eliminado',
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      ok: false,
+      msg: 'hable con el administrador',
+    });
+  }
 };
 
 module.exports = {
