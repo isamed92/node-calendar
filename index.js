@@ -12,7 +12,7 @@ app.use(express.static('public'))
 // lectura y parser del body
 app.use(express.json())
 //endpoints
-app.use('/api/auth', require('./routes/auth'))
+app.use('/api/auth', require('./src/routes/auth'))
 
 // TODO: crud: eventos
 
